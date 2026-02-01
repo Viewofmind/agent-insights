@@ -1,5 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
+import { toast } from '@/hooks/use-toast';
+import { api } from '@/lib/api';
 import type { Agent, AnalysisState, AnalysisOptions, DebateRound, ConsensusResult } from '@/types/agent';
+import type { StockAnalysisResponse } from '@/types/api';
 
 const AGENTS: Omit<Agent, 'status' | 'progress' | 'finding'>[] = [
   {
@@ -44,16 +47,35 @@ const AGENTS: Omit<Agent, 'status' | 'progress' | 'finding'>[] = [
   },
 ];
 
-const AGENT_FINDINGS: Record<string, string> = {
-  fundamental: 'Strong revenue growth of 15% YoY. P/E ratio at 28x is above sector average but justified by growth trajectory. Free cash flow remains robust at $24B quarterly.',
-  technical: 'RSI at 65, approaching overbought territory. MACD shows bullish crossover with strong momentum. Key support at $175, resistance at $195. Uptrend intact on all timeframes.',
-  news: 'Positive sentiment from recent product launches. Analyst upgrades from 3 major banks. No significant regulatory concerns. Social media sentiment is 72% bullish.',
-  risk: 'Moderate concentration risk in consumer electronics. Currency headwinds from strong USD. Supply chain resilience improved. Overall risk score: 6.2/10 (acceptable).',
-  portfolio: 'Recommended position size: 5-7% of portfolio. Suggests dollar-cost averaging over 3 entries. Stop-loss at $168 (8% below current). Risk-reward ratio: 2.8:1.',
-};
+function getAgentFinding(type: string, result: StockAnalysisResponse): string {
+  switch (type) {
+    case 'fundamental':
+      return result.fundamental_analysis || 'Fundamental analysis complete';
+    case 'technical':
+      return result.technical_analysis || 'Technical analysis complete';
+    case 'news':
+      return result.news_analysis || 'News sentiment analysis complete';
+    case 'risk':
+      return result.risk_assessment || 'Risk assessment complete';
+    case 'portfolio':
+      return result.recommendation_reasoning || 'Portfolio recommendation ready';
+    default:
+      return 'Analysis complete';
+  }
+}
 
-const DEBATE_ROUNDS: DebateRound[] = [
-  {
+function mapRecommendation(rec: string): 'BUY' | 'HOLD' | 'SELL' {
+  const normalized = rec?.toUpperCase();
+  if (normalized === 'BUY') return 'BUY';
+  if (normalized === 'SELL') return 'SELL';
+  return 'HOLD';
+}
+
+function generateDebateRounds(result: StockAnalysisResponse): DebateRound[] {
+  const rounds: DebateRound[] = [];
+
+  // Round 1: Opening Arguments
+  rounds.push({
     round: 1,
     title: 'Opening Arguments',
     messages: [
@@ -62,8 +84,8 @@ const DEBATE_ROUNDS: DebateRound[] = [
         agentName: 'Fundamental Analyst',
         agentIcon: '📊',
         agentColor: '#3B82F6',
-        message: 'The fundamentals are solid. 15% revenue growth with expanding margins. This company is executing well.',
-        position: 'for',
+        message: result.fundamental_analysis || 'Analyzing fundamental metrics...',
+        position: result.recommendation === 'Buy' ? 'for' : result.recommendation === 'Sell' ? 'against' : 'neutral',
         timestamp: Date.now(),
       },
       {
@@ -71,13 +93,15 @@ const DEBATE_ROUNDS: DebateRound[] = [
         agentName: 'Risk Assessor',
         agentIcon: '⚠️',
         agentColor: '#EF4444',
-        message: 'Valuation concerns remain. At 28x P/E, much of the growth is already priced in. Downside risk is significant.',
-        position: 'against',
+        message: result.risk_assessment || 'Evaluating risk factors...',
+        position: 'neutral',
         timestamp: Date.now(),
       },
     ],
-  },
-  {
+  });
+
+  // Round 2: Technical Evidence
+  rounds.push({
     round: 2,
     title: 'Technical Evidence',
     messages: [
@@ -86,65 +110,58 @@ const DEBATE_ROUNDS: DebateRound[] = [
         agentName: 'Technical Analyst',
         agentIcon: '📈',
         agentColor: '#10B981',
-        message: 'Momentum indicators support the bull case. MACD crossover is a strong buy signal. The trend is your friend here.',
-        position: 'for',
+        message: result.technical_analysis || 'Technical indicators analysis...',
+        position: result.recommendation === 'Buy' ? 'for' : result.recommendation === 'Sell' ? 'against' : 'neutral',
         timestamp: Date.now(),
       },
-      {
-        agentId: 'risk',
-        agentName: 'Risk Assessor',
-        agentIcon: '⚠️',
-        agentColor: '#EF4444',
-        message: 'RSI near overbought suggests a pullback is likely. I recommend waiting for a better entry point.',
-        position: 'against',
-        timestamp: Date.now(),
-      },
-    ],
-  },
-  {
-    round: 3,
-    title: 'Final Deliberation',
-    messages: [
       {
         agentId: 'news',
         agentName: 'News Monitor',
         agentIcon: '📰',
         agentColor: '#F59E0B',
-        message: 'Sentiment analysis shows 72% bullish readings. Recent analyst upgrades add credibility to the bull case.',
-        position: 'for',
+        message: result.news_analysis || 'News sentiment analysis...',
+        position: result.recommendation === 'Buy' ? 'for' : result.recommendation === 'Sell' ? 'against' : 'neutral',
         timestamp: Date.now(),
       },
+    ],
+  });
+
+  // Round 3: Final Deliberation
+  rounds.push({
+    round: 3,
+    title: 'Final Deliberation',
+    messages: [
       {
         agentId: 'portfolio',
         agentName: 'Portfolio Manager',
         agentIcon: '💼',
         agentColor: '#8B5CF6',
-        message: 'Given the mixed signals, I recommend a measured approach. Build position gradually with defined risk parameters.',
+        message: result.recommendation_reasoning || 'Preparing final recommendation...',
         position: 'neutral',
         timestamp: Date.now(),
       },
     ],
-  },
-];
+  });
 
-const CONSENSUS_RESULT: ConsensusResult = {
-  recommendation: 'BUY',
-  confidence: 78,
-  priceTarget: 195,
-  currentPrice: 178.50,
-  reasons: [
-    'Strong fundamental performance with 15% YoY revenue growth',
-    'Bullish technical setup with MACD crossover confirmation',
-    'Positive market sentiment and analyst upgrades',
-    'Acceptable risk profile with clear support levels',
-    'Favorable risk-reward ratio of 2.8:1',
-  ],
-  votes: {
-    buy: 3,
-    hold: 1,
-    sell: 1,
-  },
-};
+  return rounds;
+}
+
+function calculateVotes(result: StockAnalysisResponse): { buy: number; hold: number; sell: number } {
+  const confidence = result.confidence_score || 0.5;
+  const rec = result.recommendation;
+
+  if (rec === 'Buy') {
+    if (confidence > 0.8) return { buy: 4, hold: 1, sell: 0 };
+    if (confidence > 0.6) return { buy: 3, hold: 2, sell: 0 };
+    return { buy: 3, hold: 1, sell: 1 };
+  } else if (rec === 'Sell') {
+    if (confidence > 0.8) return { buy: 0, hold: 1, sell: 4 };
+    if (confidence > 0.6) return { buy: 0, hold: 2, sell: 3 };
+    return { buy: 1, hold: 1, sell: 3 };
+  } else {
+    return { buy: 1, hold: 3, sell: 1 };
+  }
+}
 
 export function useAnalysis() {
   const [state, setState] = useState<AnalysisState>({
@@ -157,14 +174,17 @@ export function useAnalysis() {
   });
 
   const timeoutsRef = useRef<NodeJS.Timeout[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const clearTimeouts = useCallback(() => {
     timeoutsRef.current.forEach(clearTimeout);
     timeoutsRef.current = [];
   }, []);
 
-  const startAnalysis = useCallback((stock: string, options: AnalysisOptions) => {
+  const startAnalysis = useCallback(async (stock: string, options: AnalysisOptions) => {
     clearTimeouts();
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = new AbortController();
 
     // Initialize agents based on selected options
     const selectedAgents = AGENTS.filter((agent) => {
@@ -190,9 +210,8 @@ export function useAnalysis() {
       consensus: undefined,
     });
 
-    // Simulate agent analysis with staggered timing
+    // Start visual simulation for agents
     selectedAgents.forEach((agent, index) => {
-      // Start thinking
       const thinkTimeout = setTimeout(() => {
         setState((prev) => ({
           ...prev,
@@ -200,10 +219,9 @@ export function useAnalysis() {
             a.id === agent.id ? { ...a, status: 'thinking' as const, progress: 10 } : a
           ),
         }));
-      }, index * 800);
+      }, index * 400);
       timeoutsRef.current.push(thinkTimeout);
 
-      // Start analyzing
       const analyzeTimeout = setTimeout(() => {
         setState((prev) => ({
           ...prev,
@@ -211,79 +229,118 @@ export function useAnalysis() {
             a.id === agent.id ? { ...a, status: 'analyzing' as const, progress: 30 } : a
           ),
         }));
-      }, index * 800 + 1000);
+      }, index * 400 + 500);
       timeoutsRef.current.push(analyzeTimeout);
 
-      // Progress updates
-      [50, 70, 90].forEach((progress, pIndex) => {
+      // Slow progress while waiting for API
+      [40, 50, 60].forEach((progress, pIndex) => {
         const progressTimeout = setTimeout(() => {
           setState((prev) => ({
             ...prev,
             agents: prev.agents.map((a) =>
-              a.id === agent.id ? { ...a, progress } : a
+              a.id === agent.id && a.status === 'analyzing' ? { ...a, progress } : a
             ),
           }));
-        }, index * 800 + 1500 + pIndex * 500);
+        }, index * 400 + 1000 + pIndex * 2000);
         timeoutsRef.current.push(progressTimeout);
       });
-
-      // Complete
-      const completeTimeout = setTimeout(() => {
-        setState((prev) => ({
-          ...prev,
-          agents: prev.agents.map((a) =>
-            a.id === agent.id
-              ? { ...a, status: 'complete' as const, progress: 100, finding: AGENT_FINDINGS[agent.id] }
-              : a
-          ),
-        }));
-      }, index * 800 + 3500);
-      timeoutsRef.current.push(completeTimeout);
     });
 
-    // Start debate phase
-    const debateStartTimeout = setTimeout(() => {
+    try {
+      // Call real backend API
+      const result = await api.analyzeStock(stock, options);
+
+      // Clear animation timeouts
+      clearTimeouts();
+
+      // Update agents to complete with real findings
+      const completedAgents = selectedAgents.map((agent) => ({
+        ...agent,
+        status: 'complete' as const,
+        progress: 100,
+        finding: getAgentFinding(agent.type, result),
+      }));
+
       setState((prev) => ({
         ...prev,
+        agents: completedAgents,
         currentPhase: 'debate',
-        debateRounds: [DEBATE_ROUNDS[0]],
       }));
-    }, selectedAgents.length * 800 + 4500);
-    timeoutsRef.current.push(debateStartTimeout);
 
-    // Add debate rounds progressively
-    DEBATE_ROUNDS.slice(1).forEach((round, index) => {
-      const roundTimeout = setTimeout(() => {
+      // Animate debate rounds
+      const debateRounds = generateDebateRounds(result);
+      
+      debateRounds.forEach((round, index) => {
+        const roundTimeout = setTimeout(() => {
+          setState((prev) => ({
+            ...prev,
+            debateRounds: [...prev.debateRounds, round],
+          }));
+        }, index * 1500);
+        timeoutsRef.current.push(roundTimeout);
+      });
+
+      // Show consensus after debate
+      const consensusTimeout = setTimeout(() => {
         setState((prev) => ({
           ...prev,
-          debateRounds: [...prev.debateRounds, round],
+          currentPhase: 'consensus',
         }));
-      }, selectedAgents.length * 800 + 6500 + index * 3000);
-      timeoutsRef.current.push(roundTimeout);
-    });
+      }, debateRounds.length * 1500 + 1000);
+      timeoutsRef.current.push(consensusTimeout);
 
-    // Start consensus phase
-    const consensusStartTimeout = setTimeout(() => {
-      setState((prev) => ({
-        ...prev,
-        currentPhase: 'consensus',
-      }));
-    }, selectedAgents.length * 800 + 6500 + (DEBATE_ROUNDS.length - 1) * 3000 + 2000);
-    timeoutsRef.current.push(consensusStartTimeout);
+      // Final result
+      const resultTimeout = setTimeout(() => {
+        const consensus: ConsensusResult = {
+          recommendation: mapRecommendation(result.recommendation),
+          confidence: Math.round((result.confidence_score || 0.5) * 100),
+          priceTarget: result.target_price || 0,
+          currentPrice: result.current_price || 0,
+          reasons: [
+            result.fundamental_analysis,
+            result.technical_analysis,
+            result.news_analysis,
+            result.risk_assessment,
+            result.recommendation_reasoning,
+          ].filter(Boolean) as string[],
+          votes: calculateVotes(result),
+        };
 
-    // Show final result
-    const resultTimeout = setTimeout(() => {
+        setState((prev) => ({
+          ...prev,
+          isAnalyzing: false,
+          consensus,
+        }));
+
+        toast({
+          title: 'Analysis Complete',
+          description: `${stock} analysis finished in ${result.execution_time_seconds?.toFixed(1) || '?'}s`,
+        });
+      }, debateRounds.length * 1500 + 2500);
+      timeoutsRef.current.push(resultTimeout);
+
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      clearTimeouts();
+      
       setState((prev) => ({
         ...prev,
         isAnalyzing: false,
-        consensus: CONSENSUS_RESULT,
+        currentPhase: 'idle',
+        agents: prev.agents.map((a) => ({ ...a, status: 'idle' as const, progress: 0 })),
       }));
-    }, selectedAgents.length * 800 + 6500 + (DEBATE_ROUNDS.length - 1) * 3000 + 4000);
-    timeoutsRef.current.push(resultTimeout);
+
+      toast({
+        title: 'Analysis Failed',
+        description: error instanceof Error ? error.message : 'Unable to connect to backend API',
+        variant: 'destructive',
+      });
+    }
   }, [clearTimeouts]);
 
   const resetAnalysis = useCallback(() => {
     clearTimeouts();
+    abortControllerRef.current?.abort();
     setState({
       stock: '',
       isAnalyzing: false,

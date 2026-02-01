@@ -60,12 +60,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Custom accent colors
-        electric: {
-          DEFAULT: "hsl(var(--electric-blue))",
+        // Custom accent colors - muted teal/coral palette
+        teal: {
+          DEFAULT: "hsl(var(--teal))",
         },
-        purple: {
-          DEFAULT: "hsl(var(--purple))",
+        coral: {
+          DEFAULT: "hsl(var(--coral))",
         },
         green: {
           DEFAULT: "hsl(var(--green))",
@@ -81,6 +81,11 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        'soft': '0 2px 8px hsl(220 13% 18% / 0.04), 0 1px 3px hsl(220 13% 18% / 0.04)',
+        'card': '0 1px 3px hsl(220 13% 18% / 0.04), 0 4px 12px hsl(220 13% 18% / 0.08)',
+        'elevated': '0 4px 16px hsl(220 13% 18% / 0.08), 0 8px 24px hsl(220 13% 18% / 0.04)',
       },
       keyframes: {
         "accordion-down": {

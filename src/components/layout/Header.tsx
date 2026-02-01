@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import logoImg from '@/assets/logo.svg';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -43,12 +44,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-background border-b border-border">
       <div className="container flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="relative">
-            <div className="relative w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Bot className="w-6 h-6 text-primary-foreground" />
-            </div>
-          </div>
+        <Link to="/" className="flex items-center gap-2 group">
+          <img src={logoImg} alt="InvestAgents" className="w-10 h-10" />
           <span className="text-xl font-bold">
             <span className="text-[#2d3e50]">Invest</span>
             <span className="text-[#2e8b6d]">Agents</span>

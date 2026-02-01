@@ -41,17 +41,17 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full glass border-b border-border/50">
+    <header className="sticky top-0 z-50 w-full bg-background border-b border-border">
       <div className="container flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-3 group">
           <div className="relative">
-            <div className="absolute inset-0 bg-primary/30 blur-xl rounded-full group-hover:bg-primary/50 transition-colors" />
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+            <div className="relative w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
               <Bot className="w-6 h-6 text-primary-foreground" />
             </div>
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-            InvestAgents
+          <span className="text-xl font-bold">
+            <span className="text-[#2d3e50]">Invest</span>
+            <span className="text-[#2e8b6d]">Agents</span>
           </span>
         </Link>
 

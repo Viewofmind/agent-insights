@@ -1,30 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { 
-  Settings as SettingsIcon, 
-  Key, 
-  Palette,
-  Bell,
-  Save,
-  X,
-  Loader2,
-  ExternalLink
-} from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useAuth } from '@/contexts/AuthContext';
+import { Save, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
+import { KiteSettings } from '@/components/settings/KiteSettings';
+import { UserPreferences } from '@/components/settings/UserPreferences';
 import type { Exchange, Theme } from '@/types/database';
 
 interface FormSettings {
@@ -38,7 +20,6 @@ interface FormSettings {
 
 export default function Settings() {
   const { user, settings, refreshSettings } = useAuth();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formSettings, setFormSettings] = useState<FormSettings>({
     kiteApiKey: '',
@@ -100,31 +81,12 @@ export default function Settings() {
     }
   };
 
-  const handleConnectKite = () => {
-    toast({
-      title: 'Kite OAuth',
-      description: 'Redirecting to Kite for authentication...',
-    });
-    setTimeout(() => {
-      setFormSettings(prev => ({ ...prev, kiteConnected: true }));
-      toast({
-        title: 'Connected!',
-        description: 'Successfully connected to Kite.',
-      });
-    }, 2000);
+  const handleKiteChange = (updates: Partial<FormSettings>) => {
+    setFormSettings(prev => ({ ...prev, ...updates }));
   };
 
-  const handleDisconnectKite = () => {
-    setFormSettings(prev => ({
-      ...prev,
-      kiteConnected: false,
-      kiteApiKey: '',
-      kiteApiSecret: '',
-    }));
-    toast({
-      title: 'Disconnected',
-      description: 'Kite connection has been removed.',
-    });
+  const handlePreferencesChange = (updates: Partial<FormSettings>) => {
+    setFormSettings(prev => ({ ...prev, ...updates }));
   };
 
   return (
@@ -138,167 +100,19 @@ export default function Settings() {
         </div>
 
         <div className="space-y-6">
-          {/* Kite API Configuration */}
-          <Card className="glass border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Key className="w-5 h-5 text-primary" />
-                Kite API Configuration
-              </CardTitle>
-              <CardDescription>
-                Connect your Zerodha Kite account for live trading data
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border/50">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${formSettings.kiteConnected ? 'bg-accent' : 'bg-destructive'}`} />
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {formSettings.kiteConnected ? 'Connected' : 'Not Connected'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formSettings.kiteConnected 
-                        ? 'Your Kite account is linked' 
-                        : 'Connect your Kite account to enable trading features'}
-                    </p>
-                  </div>
-                </div>
-                {formSettings.kiteConnected ? (
-                  <Button variant="outline" onClick={handleDisconnectKite} className="gap-2">
-                    <X className="w-4 h-4" />
-                    Disconnect
-                  </Button>
-                ) : (
-                  <Button onClick={handleConnectKite} className="gap-2 bg-gradient-to-r from-primary to-secondary">
-                    <ExternalLink className="w-4 h-4" />
-                    Connect Kite
-                  </Button>
-                )}
-              </div>
+          <KiteSettings
+            kiteApiKey={formSettings.kiteApiKey}
+            kiteApiSecret={formSettings.kiteApiSecret}
+            kiteConnected={formSettings.kiteConnected}
+            onChange={handleKiteChange}
+          />
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="kite-api-key">Kite API Key</Label>
-                  <Input
-                    id="kite-api-key"
-                    type="password"
-                    placeholder="Enter your API key"
-                    className="bg-background/50"
-                    value={formSettings.kiteApiKey}
-                    onChange={(e) => setFormSettings(prev => ({ ...prev, kiteApiKey: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="kite-api-secret">Kite API Secret</Label>
-                  <Input
-                    id="kite-api-secret"
-                    type="password"
-                    placeholder="Enter your API secret"
-                    className="bg-background/50"
-                    value={formSettings.kiteApiSecret}
-                    onChange={(e) => setFormSettings(prev => ({ ...prev, kiteApiSecret: e.target.value }))}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Trading Preferences */}
-          <Card className="glass border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <SettingsIcon className="w-5 h-5 text-secondary" />
-                Trading Preferences
-              </CardTitle>
-              <CardDescription>
-                Configure your default trading settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="default-exchange">Default Exchange</Label>
-                <Select
-                  value={formSettings.defaultExchange}
-                  onValueChange={(value: Exchange) => 
-                    setFormSettings(prev => ({ ...prev, defaultExchange: value }))
-                  }
-                >
-                  <SelectTrigger className="bg-background/50">
-                    <SelectValue placeholder="Select exchange" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NSE">NSE (National Stock Exchange)</SelectItem>
-                    <SelectItem value="BSE">BSE (Bombay Stock Exchange)</SelectItem>
-                    <SelectItem value="NFO">NFO (F&O Segment)</SelectItem>
-                    <SelectItem value="MCX">MCX (Commodity Exchange)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Appearance */}
-          <Card className="glass border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-5 h-5 text-yellow" />
-                Appearance
-              </CardTitle>
-              <CardDescription>
-                Customize the look and feel
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="theme">Theme</Label>
-                <Select
-                  value={formSettings.theme}
-                  onValueChange={(value: Theme) => 
-                    setFormSettings(prev => ({ ...prev, theme: value }))
-                  }
-                >
-                  <SelectTrigger className="bg-background/50">
-                    <SelectValue placeholder="Select theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notifications */}
-          <Card className="glass border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-destructive" />
-                Notifications
-              </CardTitle>
-              <CardDescription>
-                Configure alerts and notifications
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-foreground">Enable Notifications</p>
-                  <p className="text-sm text-muted-foreground">
-                    Receive alerts for analysis results and price movements
-                  </p>
-                </div>
-                <Switch 
-                  checked={formSettings.notificationEnabled}
-                  onCheckedChange={(checked) => 
-                    setFormSettings(prev => ({ ...prev, notificationEnabled: checked }))
-                  }
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <UserPreferences
+            defaultExchange={formSettings.defaultExchange}
+            theme={formSettings.theme}
+            notificationEnabled={formSettings.notificationEnabled}
+            onChange={handlePreferencesChange}
+          />
 
           {/* Save Button */}
           <div className="flex justify-end">

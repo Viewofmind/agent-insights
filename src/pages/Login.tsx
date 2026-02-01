@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
+import logoImg from '@/assets/logo.svg';
 
 export default function Login() {
   const { user, loading, signInWithGoogle } = useAuth();
@@ -39,9 +39,7 @@ export default function Login() {
       <Card className="w-full max-w-md bg-white border border-border shadow-card">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto">
-            <div className="w-16 h-16 rounded-2xl bg-[#2e8b6d] flex items-center justify-center">
-              <Bot className="w-10 h-10 text-white" />
-            </div>
+            <img src={logoImg} alt="InvestAgents" className="w-20 h-20" />
           </div>
           <div>
             <CardTitle className="text-2xl">

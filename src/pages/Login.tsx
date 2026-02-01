@@ -28,30 +28,25 @@ export default function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
+        <div className="w-8 h-8 border-2 border-[#2e8b6d] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      {/* Background gradient */}
-      <div className="fixed inset-0 bg-gradient-to-br from-background via-background to-primary/10 -z-10" />
-      <div className="fixed top-1/4 -left-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl -z-10" />
-      <div className="fixed bottom-1/4 -right-32 w-96 h-96 bg-secondary/20 rounded-full blur-3xl -z-10" />
-
-      <Card className="w-full max-w-md glass border-border/50">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#fafafa]">
+      <Card className="w-full max-w-md bg-white border border-border shadow-card">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto relative">
-            <div className="absolute inset-0 bg-primary/30 blur-xl rounded-full" />
-            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <Bot className="w-10 h-10 text-primary-foreground" />
+          <div className="mx-auto">
+            <div className="w-16 h-16 rounded-2xl bg-[#2e8b6d] flex items-center justify-center">
+              <Bot className="w-10 h-10 text-white" />
             </div>
           </div>
           <div>
-            <CardTitle className="text-2xl bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              InvestAgents
+            <CardTitle className="text-2xl">
+              <span className="text-[#2d3e50]">Invest</span>
+              <span className="text-[#2e8b6d]">Agents</span>
             </CardTitle>
             <CardDescription className="mt-2">
               AI-Powered Investment Research Platform

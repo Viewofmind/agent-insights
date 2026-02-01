@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import logoImg from '@/assets/logo.svg';
 
 export default function Login() {
   const { user, loading, signInWithGoogle } = useAuth();
@@ -38,9 +37,6 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#fafafa]">
       <Card className="w-full max-w-md bg-white border border-border shadow-card">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto">
-            <img src={logoImg} alt="InvestAgents" className="w-20 h-20" />
-          </div>
           <div>
             <CardTitle className="text-2xl">
               <span className="text-[#2d3e50]">Invest</span>

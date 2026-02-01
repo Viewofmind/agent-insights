@@ -1,10 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Bot, BarChart3, Briefcase, Settings, Menu, X, LogOut, Shield, ChevronDown, User } from 'lucide-react';
+import { BarChart3, Briefcase, Settings, Menu, X, LogOut, Shield, ChevronDown, User, LineChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
-import logoImg from '@/assets/logo.svg';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -16,7 +15,7 @@ import {
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: BarChart3 },
-  { path: '/analyze', label: 'Analyze', icon: Bot },
+  { path: '/analyze', label: 'Analyze', icon: LineChart },
   { path: '/portfolio', label: 'Portfolio', icon: Briefcase },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
@@ -44,8 +43,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full bg-background border-b border-border">
       <div className="container flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2 group">
-          <img src={logoImg} alt="InvestAgents" className="w-10 h-10" />
+        <Link to="/" className="flex items-center group">
           <span className="text-xl font-bold">
             <span className="text-[#2d3e50]">Invest</span>
             <span className="text-[#2e8b6d]">Agents</span>

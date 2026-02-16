@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Analyze from "./pages/Analyze";
+import DebateArena from "./pages/DebateArena";
 import Portfolio from "./pages/Portfolio";
 import Settings from "./pages/Settings";
 import AdminSettings from "./pages/AdminSettings";
@@ -32,6 +33,14 @@ const App = () => (
                   <Analyze />
                 </ProtectedRoute>
               } 
+            />
+            <Route 
+              path="/arena" 
+              element={
+                <ProtectedRoute>
+                  <DebateArena />
+                </ProtectedRoute>
+              }
             />
             <Route 
               path="/portfolio" 

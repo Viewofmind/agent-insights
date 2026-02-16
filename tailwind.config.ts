@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -75,6 +76,17 @@ export default {
         },
         red: {
           DEFAULT: "hsl(var(--red))",
+        },
+        arena: {
+          bg: "hsl(var(--arena-bg))",
+          panel: "hsl(var(--arena-panel))",
+          surface: "hsl(var(--arena-surface))",
+          border: "hsl(var(--arena-border))",
+          short: "hsl(var(--arena-short))",
+          bull: "hsl(var(--arena-bull))",
+          cio: "hsl(var(--arena-cio))",
+          text: "hsl(var(--arena-text))",
+          "text-muted": "hsl(var(--arena-text-muted))",
         },
       },
       borderRadius: {

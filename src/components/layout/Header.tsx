@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Briefcase, Settings, Menu, X, LogOut, Shield, ChevronDown, User, LineChart } from 'lucide-react';
+import { BarChart3, Briefcase, Settings, Menu, X, LogOut, Shield, ChevronDown, User, LineChart, Swords } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,7 @@ import {
 const navItems = [
   { path: '/', label: 'Dashboard', icon: BarChart3 },
   { path: '/analyze', label: 'Analyze', icon: LineChart },
+  { path: '/arena', label: 'Arena', icon: Swords },
   { path: '/portfolio', label: 'Portfolio', icon: Briefcase },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];

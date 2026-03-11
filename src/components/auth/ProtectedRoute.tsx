@@ -19,7 +19,8 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     );
   }
 
-  if (!user) {
+  // Allow guest access to non-admin routes
+  if (!user && requireAdmin) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

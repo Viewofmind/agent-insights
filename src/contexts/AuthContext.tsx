@@ -107,16 +107,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin,
+        skipBrowserRedirect: true,
       },
     });
 
     if (error) {
       console.error('Error signing in with Google:', error);
       throw error;
+    }
+
+    if (data?.url) {
+      const popup = window.open(data.url, 'oauth', 'width=500,height=600');
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups for this site.');
+      }
+      const messageHandler = (event: MessageEvent) => {
+        if (event.origin === window.location.origin && event.data?.type === 'oauth-complete') {
+          popup?.close();
+          window.removeEventListener('message', messageHandler);
+          window.location.reload();
+        }
+      };
+      window.addEventListener('message', messageHandler);
     }
   };
 
